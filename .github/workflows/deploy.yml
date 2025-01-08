@@ -3,8 +3,8 @@ name: Deploy Portfolio
 on:
   push:
     branches:
-      - main  # Trigger on changes to the main branch
-  workflow_dispatch:  # Allow manual triggering
+      - main
+  workflow_dispatch:
 
 jobs:
   optimize-and-deploy:
@@ -13,25 +13,40 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          persist-credentials: true
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install dependencies
         run: npm install -g imagemin-cli imagemin-mozjpeg imagemin-pngquant
+        continue-on-error: false
 
       - name: Optimize images
         run: |
           mkdir -p optimized-images
-          imagemin images/* --out-dir=optimized-images \
-            --plugin=mozjpeg \
-            --plugin=pngquant
+          find images -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \) -exec sh -c '
+            imagemin "$1" --out-dir=optimized-images --plugin=mozjpeg --plugin=pngquant
+          ' sh {} \;
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./
-          keep_files: true  # Keep existing files
+          publish_branch: gh-pages
+          force_orphan: true
+          keep_files: true
+          exclude_assets: 'images/**'
