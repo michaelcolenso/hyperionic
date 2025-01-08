@@ -10,7 +10,7 @@ jobs:
   optimize-and-deploy:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Add explicit permissions
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -27,23 +27,31 @@ jobs:
           npm install -g imagemin-mozjpeg
           npm install -g imagemin-pngquant
 
-      - name: Create directories
-        run: mkdir -p optimized-images
-
-      - name: Optimize images
+      - name: Debug directory structure
         run: |
-          if [ -d "images" ] && [ "$(ls -A images)" ]; then
-            imagemin images/* --out-dir=optimized-images \
-              --plugin.mozjpeg.quality=80 \
-              --plugin.pngquant.quality=[0.6,0.8]
+          echo "Current directory contents:"
+          ls -la
+          echo "Images directory contents (if exists):"
+          ls -la images || echo "Images directory not found"
+
+      - name: Create and optimize images
+        run: |
+          mkdir -p optimized-images
+          if [ -d "images" ]; then
+            for img in images/*; do
+              if [ -f "$img" ]; then
+                echo "Optimizing: $img"
+                imagemin "$img" --out-dir=optimized-images
+              fi
+            done
           else
-            echo "No images found to optimize"
+            echo "Warning: images directory not found"
           fi
 
-      - name: Configure Git
+      - name: Verify optimized images
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          echo "Optimized images directory contents:"
+          ls -la optimized-images || echo "Optimized images directory is empty or not created"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
