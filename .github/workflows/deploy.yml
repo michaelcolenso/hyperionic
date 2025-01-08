@@ -9,37 +9,41 @@ on:
 jobs:
   optimize-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Add explicit permissions
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        with:
-          persist-credentials: true
-          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
       - name: Install dependencies
-        run: npm install -g imagemin-cli imagemin-mozjpeg imagemin-pngquant
-        continue-on-error: false
+        run: |
+          npm install -g imagemin-cli
+          npm install -g imagemin-mozjpeg
+          npm install -g imagemin-pngquant
+
+      - name: Create directories
+        run: mkdir -p optimized-images
 
       - name: Optimize images
         run: |
-          mkdir -p optimized-images
-          find images -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \) -exec sh -c '
-            imagemin "$1" --out-dir=optimized-images --plugin=mozjpeg --plugin=pngquant
-          ' sh {} \;
+          if [ -d "images" ] && [ "$(ls -A images)" ]; then
+            imagemin images/* --out-dir=optimized-images \
+              --plugin.mozjpeg.quality=80 \
+              --plugin.pngquant.quality=[0.6,0.8]
+          else
+            echo "No images found to optimize"
+          fi
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
@@ -48,5 +52,5 @@ jobs:
           publish_dir: ./
           publish_branch: gh-pages
           force_orphan: true
-          keep_files: true
-          exclude_assets: 'images/**'
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
