@@ -27,31 +27,30 @@ jobs:
           npm install -g imagemin-mozjpeg
           npm install -g imagemin-pngquant
 
-      - name: Debug directory structure
+      - name: Create directory structure
         run: |
-          echo "Current directory contents:"
-          ls -la
-          echo "Images directory contents (if exists):"
-          ls -la images || echo "Images directory not found"
+          mkdir -p hyperionic/optimized-images
+          echo "Created directory structure:"
+          ls -la hyperionic/
 
-      - name: Create and optimize images
+      - name: Optimize images
         run: |
-          mkdir -p optimized-images
           if [ -d "images" ]; then
             for img in images/*; do
               if [ -f "$img" ]; then
                 echo "Optimizing: $img"
-                imagemin "$img" --out-dir=optimized-images
+                imagemin "$img" --out-dir=hyperionic/optimized-images
               fi
             done
           else
             echo "Warning: images directory not found"
+            ls -la
           fi
 
       - name: Verify optimized images
         run: |
           echo "Optimized images directory contents:"
-          ls -la optimized-images || echo "Optimized images directory is empty or not created"
+          ls -la hyperionic/optimized-images || echo "Directory is empty or not created"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
