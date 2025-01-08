@@ -1,0 +1,37 @@
+name: Deploy Portfolio
+
+on:
+  push:
+    branches:
+      - main  # Trigger on changes to the main branch
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  optimize-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install -g imagemin-cli imagemin-mozjpeg imagemin-pngquant
+
+      - name: Optimize images
+        run: |
+          mkdir -p optimized-images
+          imagemin images/* --out-dir=optimized-images \
+            --plugin=mozjpeg \
+            --plugin=pngquant
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          keep_files: true  # Keep existing files
