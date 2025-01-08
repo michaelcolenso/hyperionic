@@ -27,24 +27,19 @@ jobs:
           npm install -g imagemin-mozjpeg
           npm install -g imagemin-pngquant
 
-      - name: Create directory structure
-        run: |
-          mkdir -p hyperionic/optimized-images
-          echo "Created directory structure:"
-          ls -la hyperionic/
-
       - name: Optimize images
         run: |
-          if [ -d "images" ]; then
-            for img in images/*; do
+          mkdir -p hyperionic/optimized-images
+          if [ -d "hyperionic/images" ]; then
+            for img in hyperionic/images/*; do
               if [ -f "$img" ]; then
                 echo "Optimizing: $img"
                 imagemin "$img" --out-dir=hyperionic/optimized-images
               fi
             done
           else
-            echo "Warning: images directory not found"
-            ls -la
+            echo "Warning: hyperionic/images directory not found"
+            ls -la hyperionic/
           fi
 
       - name: Verify optimized images
@@ -59,5 +54,5 @@ jobs:
           publish_dir: ./
           publish_branch: gh-pages
           force_orphan: true
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"
