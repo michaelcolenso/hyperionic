@@ -31,7 +31,7 @@ jobs:
         run: |
           echo "Current directory contents:"
           ls -la
-          echo "Creating directories..."
+          echo "Creating directories."
           mkdir -p hyperionic/optimized-images
           echo "Directory structure after creation:"
           ls -la hyperionic/
