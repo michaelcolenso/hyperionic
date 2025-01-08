@@ -29,15 +29,12 @@ jobs:
 
       - name: Debug directory structure
         run: |
-          echo "Current directory contents:"
-          ls -la
+
           echo "Creating directories."
-          mkdir -p hyperionic/optimized-images
-          echo "Directory structure after creation:"
-          ls -la hyperionic/
+          mkdir -p optimized-images
 
       - name: Optimize images
-        working-directory: hyperionic
+        working-directory: .
         run: |
           if [ -d "images" ]; then
             echo "Found images directory, contents:"
