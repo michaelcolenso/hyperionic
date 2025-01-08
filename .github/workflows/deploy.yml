@@ -27,18 +27,21 @@ jobs:
           npm install -g imagemin-mozjpeg
           npm install -g imagemin-pngquant
 
-      - name: Debug directory structure
+      - name: Debug directory
         run: |
 
           echo "Creating directories."
           mkdir -p optimized-images
+          pwd
+          echo "Contents before:"
+          ls -la
+          echo "Images directory:"
+          ls -la images || echo "No images directory in root"
 
       - name: Optimize images
-        working-directory: .
         run: |
+          mkdir -p optimized-images
           if [ -d "images" ]; then
-            echo "Found images directory, contents:"
-            ls -la images/
             for img in images/*; do
               if [ -f "$img" ]; then
                 echo "Optimizing: $img"
@@ -46,8 +49,10 @@ jobs:
               fi
             done
           else
-            echo "Warning: images directory not found in:"
+            echo "Warning: images directory not found"
+            echo "Current location:"
             pwd
+            echo "Directory contents:"
             ls -la
           fi
 
